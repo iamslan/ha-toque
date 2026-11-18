@@ -294,7 +294,16 @@ It creates `input_text.toque_recherche`, `input_select.toque_recette`,
 
 ### 2. The dashboard view: `examples/toque_dashboard.yaml`
 
-Open a dashboard, switch to edit mode, add a view, choose **Edit in YAML** and paste the file.
+There are two versions of the same view; pick the one that matches the editor you use:
+
+- **A dashboard of its own:** create a dashboard, open it, pencil › three dots ›
+  **Raw configuration editor**, and replace everything with
+  `examples/toque_dashboard_full.yaml` (it starts with `views:`).
+- **One more view in an existing dashboard:** edit mode › add a view › three dots ›
+  **Edit in YAML**, and paste `examples/toque_dashboard.yaml` (it starts with `title:`).
+
+Pasting the single-view file into the raw configuration editor gives "At path: views --
+Expected an array value": use the `_full` file there.
 
 The file assumes the robot's device is named `MrCuisine` in a French Home Assistant, which
 gives entity ids such as `sensor.mrcuisine_etat`. If yours differ (see the device page),
