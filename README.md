@@ -265,6 +265,78 @@ data:
   todo_entity: todo.shopping_list
 ```
 
+## Dashboard and recipe browser
+
+Two ready-made files in [`examples/`](examples/) give you a dashboard view and a recipe browser
+with a shopping list. They use built-in Home Assistant cards and helpers only, with French
+labels.
+
+### 1. The recipe browser: `examples/toque_package.yaml`
+
+Home Assistant has no card that can show the answer of an action, so this package adds the
+missing pieces: a search field, a list of the recipes found, and two scripts.
+
+1. In `configuration.yaml`, enable packages if you have not already:
+
+   ```yaml
+   homeassistant:
+     packages: !include_dir_named packages
+   ```
+
+2. Copy `examples/toque_package.yaml` to `<config>/packages/toque.yaml`.
+3. In that file, set your to-do list (search for `CHANGE ME`). Home Assistant's own shopping
+   list is `todo.liste_de_courses` in French and `todo.shopping_list` in English.
+4. Restart Home Assistant.
+
+It creates `input_text.toque_recherche`, `input_select.toque_recette`,
+`sensor.toque_recettes_trouvees`, `sensor.toque_recette_choisie`, `script.toque_chercher` and
+`script.toque_ajouter_au_panier`.
+
+### 2. The dashboard view: `examples/toque_dashboard.yaml`
+
+Open a dashboard, switch to edit mode, add a view, choose **Edit in YAML** and paste the file.
+
+The file assumes the robot's device is named `MrCuisine` in a French Home Assistant, which
+gives entity ids such as `sensor.mrcuisine_etat`. If yours differ (see the device page),
+replace `mrcuisine_` everywhere with your own prefix. Change `todo.liste_de_courses` as well if
+your list has another id.
+
+The view has three columns:
+
+- **Robot:** state, bowl temperature, scale, lid, bowl, fault.
+- **Cuisson:** the running program with its end time, a "your turn" banner when the robot
+  waits for you, and the current step of a guided recipe with its whole text.
+- **Recettes:** search, pick, read the ingredients and steps, add to the shopping list.
+
+### Browsing recipes and filling the shopping list
+
+1. Type a few words in **Chercher** (for example `soupe potiron`) and press **Chercher**.
+   Leave the field empty to list everything, favourites first.
+2. Open **Recette** and pick one of the recipes found. Its ingredients and steps appear below.
+3. Press **Ajouter au panier**: one to-do item is added per ingredient, and a notification says
+   how many.
+
+The robot must be switched on: the recipes live on the robot, not in Home Assistant. The list
+shows the first 20 recipes found; refine the words to narrow it down.
+
+The same thing without any dashboard, from **Developer tools › Actions**:
+
+```yaml
+action: toque.search_recipes
+data:
+  query: soupe potiron
+  limit: 10
+```
+
+then, with an `id` from the answer:
+
+```yaml
+action: toque.add_to_shopping_list
+data:
+  recipe_id: web-10198496
+  todo_entity: todo.liste_de_courses
+```
+
 ## Troubleshooting
 
 - **Entities are unavailable.** The robot is switched off, Toque is not running, or the home
