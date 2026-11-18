@@ -1,0 +1,267 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Add a Toque robot",
+        "description": "Switch on the home link on the robot first: Toque › Settings › Home link. The address of the robot is shown on that screen.",
+        "data": {
+          "host": "Host",
+          "port": "Port"
+        },
+        "data_description": {
+          "host": "IP address or host name of the robot on your home network.",
+          "port": "8730 unless you changed it."
+        }
+      },
+      "pair": {
+        "title": "Pair with {name}",
+        "description": "On the robot ({host}), open Toque › Settings › Home link › Pair a device, then enter the 6-digit code shown on its screen. The code is valid for 5 minutes.",
+        "data": {
+          "code": "Pairing code"
+        },
+        "data_description": {
+          "code": "The 6 digits shown on the robot."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "The robot does not answer. Check that it is switched on, that the home link is enabled and that the address is right.",
+      "not_toque": "Something answers at this address, but it is not a Toque home link.",
+      "invalid_code": "The code is made of 6 digits.",
+      "bad_code": "Wrong code. Check the code shown on the robot and try again.",
+      "pairing_closed": "No pairing code is on screen. On the robot, open Settings › Home link › Pair a device.",
+      "too_many_attempts": "Too many wrong codes: this code was cancelled. Show a new code on the robot and try again.",
+      "unknown": "Unexpected error. See the Home Assistant log for details."
+    },
+    "abort": {
+      "already_configured": "This robot is already configured.",
+      "cannot_connect": "The robot does not answer.",
+      "reauth_successful": "Pairing was renewed.",
+      "wrong_device": "The robot at this address is not the one that was configured. Remove the integration and add it again."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "state": {
+        "name": "State",
+        "state": {
+          "offline": "Offline",
+          "idle": "Idle",
+          "running": "Running",
+          "paused": "Paused",
+          "waiting_for_user": "Waiting for the cook",
+          "fault": "Fault"
+        }
+      },
+      "job_kind": {
+        "name": "Program",
+        "state": {
+          "manual": "Manual cooking",
+          "knead": "Kneading",
+          "steam": "Steaming",
+          "toast": "Roasting",
+          "turbo": "Turbo"
+        }
+      },
+      "job_label": {
+        "name": "Program label"
+      },
+      "time_remaining": {
+        "name": "Time remaining"
+      },
+      "end_time": {
+        "name": "End time"
+      },
+      "bowl_temperature": {
+        "name": "Bowl temperature"
+      },
+      "target_temperature": {
+        "name": "Target temperature"
+      },
+      "speed": {
+        "name": "Speed"
+      },
+      "rpm": {
+        "name": "Rotation speed"
+      },
+      "weight": {
+        "name": "Weight"
+      },
+      "guided_recipe": {
+        "name": "Recipe"
+      },
+      "guided_step": {
+        "name": "Recipe step"
+      },
+      "guided_steps": {
+        "name": "Recipe step count"
+      },
+      "guided_step_text": {
+        "name": "Recipe step text"
+      },
+      "guided_step_setting": {
+        "name": "Recipe step setting"
+      },
+      "link": {
+        "name": "Motor base link",
+        "state": {
+          "offline": "Offline",
+          "connecting": "Connecting",
+          "ready": "Ready",
+          "fault": "Fault"
+        }
+      },
+      "firmware": {
+        "name": "Motor base firmware"
+      }
+    },
+    "binary_sensor": {
+      "lid_open": {
+        "name": "Lid"
+      },
+      "bowl_present": {
+        "name": "Bowl present"
+      },
+      "motor_running": {
+        "name": "Motor"
+      },
+      "heating": {
+        "name": "Heating"
+      },
+      "waiting_for_user": {
+        "name": "Waiting for the cook"
+      },
+      "fault": {
+        "name": "Fault"
+      }
+    },
+    "event": {
+      "cooking_event": {
+        "name": "Cooking event",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "job_started": "Program started",
+              "job_paused": "Program paused",
+              "job_resumed": "Program resumed",
+              "job_finished": "Program finished",
+              "job_aborted": "Program stopped",
+              "waiting_for_user": "Waiting for the cook",
+              "recipe_finished": "Recipe finished",
+              "lid_opened": "Lid opened",
+              "lid_closed": "Lid closed",
+              "fault": "Fault"
+            }
+          }
+        }
+      }
+    }
+  },
+  "services": {
+    "search_recipes": {
+      "name": "Search recipes",
+      "description": "Searches the robot's recipe library and returns the matching recipes.",
+      "fields": {
+        "query": {
+          "name": "Search text",
+          "description": "Words to look for. Empty: all recipes, favourites first."
+        },
+        "category": {
+          "name": "Category",
+          "description": "Keep one category only, by its name as shown on the robot."
+        },
+        "favorites": {
+          "name": "Favourites only",
+          "description": "Keep the favourite recipes only."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "Maximum number of recipes returned (1 to 200)."
+        },
+        "offset": {
+          "name": "Offset",
+          "description": "Number of recipes to skip, to read the next page."
+        },
+        "config_entry_id": {
+          "name": "Robot",
+          "description": "Which robot to ask. Only needed when several robots are configured."
+        },
+        "device_id": {
+          "name": "Robot (device)",
+          "description": "Another way to say which robot: its device."
+        }
+      }
+    },
+    "get_recipe": {
+      "name": "Get recipe",
+      "description": "Returns one whole recipe: ingredients and steps.",
+      "fields": {
+        "recipe_id": {
+          "name": "Recipe ID",
+          "description": "The id of the recipe, as returned by the recipe search."
+        },
+        "config_entry_id": {
+          "name": "Robot",
+          "description": "Which robot to ask. Only needed when several robots are configured."
+        },
+        "device_id": {
+          "name": "Robot (device)",
+          "description": "Another way to say which robot: its device."
+        }
+      }
+    },
+    "add_to_shopping_list": {
+      "name": "Add to shopping list",
+      "description": "Adds the ingredients of one or several recipes to a to-do list, one item per ingredient.",
+      "fields": {
+        "recipe_id": {
+          "name": "Recipe ID",
+          "description": "The id of a recipe, or a list of ids."
+        },
+        "recipe_ids": {
+          "name": "Recipe IDs",
+          "description": "A list of recipe ids, as an alternative to the single id."
+        },
+        "todo_entity": {
+          "name": "To-do list",
+          "description": "The to-do list that receives the ingredients."
+        },
+        "config_entry_id": {
+          "name": "Robot",
+          "description": "Which robot to ask. Only needed when several robots are configured."
+        },
+        "device_id": {
+          "name": "Robot (device)",
+          "description": "Another way to say which robot: its device."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_robot": {
+      "message": "No Toque robot is set up and loaded."
+    },
+    "robot_required": {
+      "message": "Several Toque robots are configured: say which one with config_entry_id or device_id."
+    },
+    "robot_not_found": {
+      "message": "This robot is not a loaded Toque robot."
+    },
+    "cannot_connect": {
+      "message": "The robot does not answer. It is probably switched off."
+    },
+    "auth_failed": {
+      "message": "The robot refused the token. Pair Home Assistant with the robot again."
+    },
+    "api_error": {
+      "message": "The robot returned an error: {error}"
+    },
+    "recipe_not_found": {
+      "message": "The robot has no recipe with the id {recipe_id}."
+    },
+    "todo_unavailable": {
+      "message": "The to-do integration is not loaded: there is no list to add to."
+    }
+  }
+}

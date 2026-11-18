@@ -1,0 +1,267 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Ajouter un robot Toque",
+        "description": "Activez d'abord le lien domotique sur le robot : Toque › Réglages › Lien domotique. L'adresse du robot est affichée sur cet écran.",
+        "data": {
+          "host": "Hôte",
+          "port": "Port"
+        },
+        "data_description": {
+          "host": "Adresse IP ou nom d'hôte du robot sur votre réseau domestique.",
+          "port": "8730, sauf si vous l'avez changé."
+        }
+      },
+      "pair": {
+        "title": "Associer {name}",
+        "description": "Sur le robot ({host}), ouvrez Toque › Réglages › Lien domotique › Associer un appareil, puis saisissez le code à 6 chiffres affiché à l'écran. Le code est valable 5 minutes.",
+        "data": {
+          "code": "Code d'association"
+        },
+        "data_description": {
+          "code": "Les 6 chiffres affichés sur le robot."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Le robot ne répond pas. Vérifiez qu'il est allumé, que le lien domotique est activé et que l'adresse est correcte.",
+      "not_toque": "Quelque chose répond à cette adresse, mais ce n'est pas un lien domotique Toque.",
+      "invalid_code": "Le code comporte 6 chiffres.",
+      "bad_code": "Code incorrect. Vérifiez le code affiché sur le robot et réessayez.",
+      "pairing_closed": "Aucun code d'association n'est affiché. Sur le robot, ouvrez Réglages › Lien domotique › Associer un appareil.",
+      "too_many_attempts": "Trop de codes incorrects : ce code a été annulé. Affichez un nouveau code sur le robot et réessayez.",
+      "unknown": "Erreur inattendue. Consultez le journal de Home Assistant."
+    },
+    "abort": {
+      "already_configured": "Ce robot est déjà configuré.",
+      "cannot_connect": "Le robot ne répond pas.",
+      "reauth_successful": "L'association a été renouvelée.",
+      "wrong_device": "Le robot à cette adresse n'est pas celui qui était configuré. Supprimez l'intégration et ajoutez-la de nouveau."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "state": {
+        "name": "État",
+        "state": {
+          "offline": "Hors ligne",
+          "idle": "Au repos",
+          "running": "En marche",
+          "paused": "En pause",
+          "waiting_for_user": "En attente du cuisinier",
+          "fault": "En défaut"
+        }
+      },
+      "job_kind": {
+        "name": "Programme",
+        "state": {
+          "manual": "Cuisson manuelle",
+          "knead": "Pétrissage",
+          "steam": "Cuisson vapeur",
+          "toast": "Rissolage",
+          "turbo": "Turbo"
+        }
+      },
+      "job_label": {
+        "name": "Libellé du programme"
+      },
+      "time_remaining": {
+        "name": "Temps restant"
+      },
+      "end_time": {
+        "name": "Heure de fin"
+      },
+      "bowl_temperature": {
+        "name": "Température du bol"
+      },
+      "target_temperature": {
+        "name": "Température cible"
+      },
+      "speed": {
+        "name": "Vitesse"
+      },
+      "rpm": {
+        "name": "Vitesse de rotation"
+      },
+      "weight": {
+        "name": "Poids"
+      },
+      "guided_recipe": {
+        "name": "Recette"
+      },
+      "guided_step": {
+        "name": "Étape de la recette"
+      },
+      "guided_steps": {
+        "name": "Nombre d'étapes de la recette"
+      },
+      "guided_step_text": {
+        "name": "Texte de l'étape"
+      },
+      "guided_step_setting": {
+        "name": "Réglage de l'étape"
+      },
+      "link": {
+        "name": "Liaison avec le bloc moteur",
+        "state": {
+          "offline": "Hors ligne",
+          "connecting": "Connexion en cours",
+          "ready": "Prête",
+          "fault": "En défaut"
+        }
+      },
+      "firmware": {
+        "name": "Micrologiciel du bloc moteur"
+      }
+    },
+    "binary_sensor": {
+      "lid_open": {
+        "name": "Couvercle"
+      },
+      "bowl_present": {
+        "name": "Bol en place"
+      },
+      "motor_running": {
+        "name": "Moteur"
+      },
+      "heating": {
+        "name": "Chauffe"
+      },
+      "waiting_for_user": {
+        "name": "En attente du cuisinier"
+      },
+      "fault": {
+        "name": "Défaut"
+      }
+    },
+    "event": {
+      "cooking_event": {
+        "name": "Événement de cuisson",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "job_started": "Programme démarré",
+              "job_paused": "Programme en pause",
+              "job_resumed": "Programme repris",
+              "job_finished": "Programme terminé",
+              "job_aborted": "Programme arrêté",
+              "waiting_for_user": "En attente du cuisinier",
+              "recipe_finished": "Recette terminée",
+              "lid_opened": "Couvercle ouvert",
+              "lid_closed": "Couvercle fermé",
+              "fault": "Défaut"
+            }
+          }
+        }
+      }
+    }
+  },
+  "services": {
+    "search_recipes": {
+      "name": "Chercher des recettes",
+      "description": "Cherche dans la bibliothèque de recettes du robot et renvoie les recettes trouvées.",
+      "fields": {
+        "query": {
+          "name": "Texte recherché",
+          "description": "Mots à chercher. Vide : toutes les recettes, les favorites d'abord."
+        },
+        "category": {
+          "name": "Catégorie",
+          "description": "Ne garder qu'une catégorie, par son nom tel qu'affiché sur le robot."
+        },
+        "favorites": {
+          "name": "Favorites uniquement",
+          "description": "Ne garder que les recettes favorites."
+        },
+        "limit": {
+          "name": "Limite",
+          "description": "Nombre maximal de recettes renvoyées (1 à 200)."
+        },
+        "offset": {
+          "name": "Décalage",
+          "description": "Nombre de recettes à sauter, pour lire la page suivante."
+        },
+        "config_entry_id": {
+          "name": "Robot",
+          "description": "Le robot à interroger. Utile seulement si plusieurs robots sont configurés."
+        },
+        "device_id": {
+          "name": "Robot (appareil)",
+          "description": "Autre façon de désigner le robot : son appareil."
+        }
+      }
+    },
+    "get_recipe": {
+      "name": "Lire une recette",
+      "description": "Renvoie une recette entière : ingrédients et étapes.",
+      "fields": {
+        "recipe_id": {
+          "name": "Identifiant de la recette",
+          "description": "L'identifiant de la recette, tel que renvoyé par la recherche."
+        },
+        "config_entry_id": {
+          "name": "Robot",
+          "description": "Le robot à interroger. Utile seulement si plusieurs robots sont configurés."
+        },
+        "device_id": {
+          "name": "Robot (appareil)",
+          "description": "Autre façon de désigner le robot : son appareil."
+        }
+      }
+    },
+    "add_to_shopping_list": {
+      "name": "Ajouter à la liste de courses",
+      "description": "Ajoute les ingrédients d'une ou plusieurs recettes à une liste de tâches, un élément par ingrédient.",
+      "fields": {
+        "recipe_id": {
+          "name": "Identifiant de la recette",
+          "description": "L'identifiant d'une recette, ou une liste d'identifiants."
+        },
+        "recipe_ids": {
+          "name": "Identifiants des recettes",
+          "description": "Une liste d'identifiants de recettes, à la place de l'identifiant unique."
+        },
+        "todo_entity": {
+          "name": "Liste de tâches",
+          "description": "La liste de tâches qui reçoit les ingrédients."
+        },
+        "config_entry_id": {
+          "name": "Robot",
+          "description": "Le robot à interroger. Utile seulement si plusieurs robots sont configurés."
+        },
+        "device_id": {
+          "name": "Robot (appareil)",
+          "description": "Autre façon de désigner le robot : son appareil."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_robot": {
+      "message": "Aucun robot Toque n'est configuré et chargé."
+    },
+    "robot_required": {
+      "message": "Plusieurs robots Toque sont configurés : précisez lequel avec config_entry_id ou device_id."
+    },
+    "robot_not_found": {
+      "message": "Ce robot n'est pas un robot Toque chargé."
+    },
+    "cannot_connect": {
+      "message": "Le robot ne répond pas. Il est probablement éteint."
+    },
+    "auth_failed": {
+      "message": "Le robot a refusé le jeton. Associez de nouveau Home Assistant au robot."
+    },
+    "api_error": {
+      "message": "Le robot a renvoyé une erreur : {error}"
+    },
+    "recipe_not_found": {
+      "message": "Le robot n'a pas de recette avec l'identifiant {recipe_id}."
+    },
+    "todo_unavailable": {
+      "message": "L'intégration des listes de tâches n'est pas chargée : aucune liste où ajouter."
+    }
+  }
+}

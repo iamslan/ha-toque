@@ -1,0 +1,77 @@
+search_recipes:
+  fields:
+    query:
+      example: "risotto"
+      selector:
+        text:
+    category:
+      example: "Desserts"
+      selector:
+        text:
+    favorites:
+      default: false
+      selector:
+        boolean:
+    limit:
+      default: 50
+      selector:
+        number:
+          min: 1
+          max: 200
+          mode: box
+    offset:
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 100000
+          mode: box
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: toque
+    device_id:
+      selector:
+        device:
+          integration: toque
+
+get_recipe:
+  fields:
+    recipe_id:
+      required: true
+      example: "web-250008"
+      selector:
+        text:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: toque
+    device_id:
+      selector:
+        device:
+          integration: toque
+
+add_to_shopping_list:
+  fields:
+    recipe_id:
+      example: "web-250008"
+      selector:
+        text:
+    recipe_ids:
+      example: '["web-250008", "web-250011"]'
+      selector:
+        object:
+    todo_entity:
+      required: true
+      example: "todo.shopping_list"
+      selector:
+        entity:
+          domain: todo
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: toque
+    device_id:
+      selector:
+        device:
+          integration: toque

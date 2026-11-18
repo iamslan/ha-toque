@@ -1,0 +1,88 @@
+{
+  "entity": {
+    "sensor": {
+      "state": {
+        "default": "mdi:pot-steam",
+        "state": {
+          "offline": "mdi:power-plug-off",
+          "idle": "mdi:pot-outline",
+          "paused": "mdi:pause-circle-outline",
+          "waiting_for_user": "mdi:account-clock",
+          "fault": "mdi:alert-circle"
+        }
+      },
+      "job_kind": {
+        "default": "mdi:chef-hat"
+      },
+      "job_label": {
+        "default": "mdi:label-outline"
+      },
+      "time_remaining": {
+        "default": "mdi:timer-sand"
+      },
+      "end_time": {
+        "default": "mdi:clock-end"
+      },
+      "target_temperature": {
+        "default": "mdi:thermometer-chevron-up"
+      },
+      "speed": {
+        "default": "mdi:speedometer"
+      },
+      "rpm": {
+        "default": "mdi:rotate-right"
+      },
+      "guided_recipe": {
+        "default": "mdi:book-open-variant"
+      },
+      "guided_step": {
+        "default": "mdi:format-list-numbered"
+      },
+      "guided_steps": {
+        "default": "mdi:format-list-numbered"
+      },
+      "guided_step_text": {
+        "default": "mdi:text-box-outline"
+      },
+      "guided_step_setting": {
+        "default": "mdi:tune"
+      },
+      "link": {
+        "default": "mdi:lan-connect"
+      },
+      "firmware": {
+        "default": "mdi:chip"
+      }
+    },
+    "binary_sensor": {
+      "bowl_present": {
+        "default": "mdi:bowl-outline",
+        "state": {
+          "on": "mdi:bowl"
+        }
+      },
+      "waiting_for_user": {
+        "default": "mdi:account-clock-outline",
+        "state": {
+          "on": "mdi:account-clock"
+        }
+      }
+    },
+    "event": {
+      "cooking_event": {
+        "default": "mdi:bell-ring-outline"
+      }
+    }
+  },
+  "services": {
+    "search_recipes": {
+      "service": "mdi:book-search"
+    },
+    "get_recipe": {
+      "service": "mdi:book-open-variant"
+    },
+    "add_to_shopping_list": {
+      "service": "mdi:cart-plus"
+    }
+  }
+}
