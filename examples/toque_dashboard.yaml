@@ -1,0 +1,209 @@
+# Toque: a dashboard view made of built-in Home Assistant cards only.
+#
+# How to use it: open a dashboard › pencil › "+" (add a view) › three dots › "Edit in YAML",
+# and paste everything below. See "Dashboard and recipe browser" in the README.
+#
+# Entity ids: this file assumes the robot's device is called "MrCuisine" in a French Home
+# Assistant, which gives ids such as sensor.mrcuisine_etat. If yours differ (look at the
+# device page), replace "mrcuisine_" everywhere with your own prefix; in an English Home
+# Assistant the endings differ too (sensor.<name>_state, binary_sensor.<name>_lid, ...).
+#
+# The "Recettes" section needs examples/toque_package.yaml installed.
+# The to-do list card assumes todo.liste_de_courses: change it to your own list.
+
+title: Cuisine
+path: toque
+icon: mdi:pot-steam
+type: sections
+max_columns: 3
+sections:
+  # ------------------------------------------------------------------ the robot now
+  - type: grid
+    cards:
+      - type: heading
+        heading: Robot
+        icon: mdi:pot-steam
+      - type: tile
+        entity: sensor.mrcuisine_etat
+        name: État
+        vertical: false
+      - type: tile
+        entity: sensor.mrcuisine_temperature_du_bol
+        name: Bol
+      - type: tile
+        entity: sensor.mrcuisine_poids
+        name: Balance
+      - type: tile
+        entity: binary_sensor.mrcuisine_couvercle
+        name: Couvercle
+      - type: tile
+        entity: binary_sensor.mrcuisine_bol_en_place
+        name: Bol en place
+      - type: tile
+        entity: binary_sensor.mrcuisine_defaut
+        name: Défaut
+      # Shown only while the robot is switched off or out of reach.
+      - type: markdown
+        visibility:
+          - condition: state
+            entity: sensor.mrcuisine_etat
+            state: unavailable
+        content: |
+          Le robot est éteint ou hors de portée. Tout revient tout seul quand il se rallume.
+
+  # ------------------------------------------------------------------ what is cooking
+  - type: grid
+    cards:
+      - type: heading
+        heading: Cuisson
+        icon: mdi:chef-hat
+      # A program is running or paused.
+      - type: tile
+        entity: sensor.mrcuisine_libelle_du_programme
+        name: Programme
+        visibility:
+          - condition: state
+            entity: sensor.mrcuisine_etat
+            state:
+              - running
+              - paused
+      - type: tile
+        entity: sensor.mrcuisine_heure_de_fin
+        name: Fin
+        visibility:
+          - condition: state
+            entity: sensor.mrcuisine_etat
+            state: running
+      - type: tile
+        entity: sensor.mrcuisine_vitesse
+        name: Vitesse
+        visibility:
+          - condition: state
+            entity: sensor.mrcuisine_etat
+            state:
+              - running
+              - paused
+      - type: tile
+        entity: sensor.mrcuisine_temperature_cible
+        name: Consigne
+        visibility:
+          - condition: state
+            entity: binary_sensor.mrcuisine_chauffe
+            state: "on"
+      # The robot is waiting for the cook.
+      - type: markdown
+        visibility:
+          - condition: state
+            entity: binary_sensor.mrcuisine_en_attente_du_cuisinier
+            state: "on"
+        content: |
+          ## 👩‍🍳 À vous de jouer
+
+          Le robot attend la suite de la recette.
+      # A guided recipe is open: title, step number, the whole step text, the machine setting.
+      - type: markdown
+        visibility:
+          - condition: state
+            entity: sensor.mrcuisine_recette
+            state_not:
+              - unknown
+              - unavailable
+        content: |
+          ### {{ states('sensor.mrcuisine_recette') }}
+
+          **Étape {{ states('sensor.mrcuisine_etape_de_la_recette') }}
+          sur {{ states('sensor.mrcuisine_nombre_d_etapes_de_la_recette') }}**
+
+          {{ state_attr('sensor.mrcuisine_texte_de_l_etape', 'full_text')
+             or states('sensor.mrcuisine_texte_de_l_etape') }}
+
+          {% set reglage = states('sensor.mrcuisine_reglage_de_l_etape') %}
+          {% if reglage not in ['unknown', 'unavailable', ''] %}
+          *Réglage : {{ reglage }}*
+          {% endif %}
+      # Nothing is cooking.
+      - type: markdown
+        visibility:
+          - condition: state
+            entity: sensor.mrcuisine_etat
+            state: idle
+        content: |
+          Rien en cours. Le dernier évènement :
+          {{ state_attr('event.mrcuisine_evenement_de_cuisson', 'event_type') or 'aucun' }}.
+
+  # ------------------------------------------------------------------ recipes and shopping list
+  - type: grid
+    cards:
+      - type: heading
+        heading: Recettes
+        icon: mdi:book-open-variant
+      - type: entities
+        entities:
+          - entity: input_text.toque_recherche
+            name: Chercher
+          - type: button
+            name: Lancer la recherche
+            icon: mdi:magnify
+            action_name: Chercher
+            tap_action:
+              action: perform-action
+              perform_action: script.toque_chercher
+          - entity: input_select.toque_recette
+            name: Recette
+          - type: button
+            name: Ingrédients de cette recette
+            icon: mdi:cart-plus
+            action_name: Ajouter au panier
+            tap_action:
+              action: perform-action
+              perform_action: script.toque_ajouter_au_panier
+      # The recipe picked: what to buy and how it goes.
+      - type: markdown
+        visibility:
+          - condition: state
+            entity: sensor.toque_recette_choisie
+            state_not:
+              - unknown
+              - unavailable
+              - Aucune
+        content: |
+          ### {{ states('sensor.toque_recette_choisie') }}
+
+          {% set s = 'sensor.toque_recette_choisie' %}
+          {{ state_attr(s, 'minutes') }} min · {{ state_attr(s, 'servings') }} portions ·
+          ★ {{ state_attr(s, 'rating') }} ({{ state_attr(s, 'rating_count') }} avis)
+
+
+          **Ingrédients**
+
+          {% for i in state_attr(s, 'ingredients') or [] %}
+          - {{ i }}
+
+          {% endfor %}
+
+          **Étapes**
+
+          {% for e in state_attr(s, 'steps') or [] %}
+          {{ loop.index }}. {{ e }}
+
+          {% endfor %}
+      # Everything the last search found.
+      - type: markdown
+        visibility:
+          - condition: state
+            entity: sensor.toque_recettes_trouvees
+            state_not:
+              - unknown
+              - unavailable
+        content: |
+          **{{ states('sensor.toque_recettes_trouvees') }} recettes trouvées**
+          (les 20 premières sont dans la liste)
+
+          {% for r in state_attr('sensor.toque_recettes_trouvees', 'recettes') or [] %}
+          - **{{ r.title }}** · {{ r.minutes }} min · ★ {{ r.rating }}
+          ({{ r.rating_count }}) · {{ r.category }}
+
+          {% endfor %}
+      - type: todo-list
+        entity: todo.liste_de_courses
+        title: Panier de courses

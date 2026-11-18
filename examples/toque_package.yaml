@@ -1,0 +1,203 @@
+# Toque: recipe browser and shopping list, with built-in Home Assistant pieces only.
+#
+# Install: see "Dashboard and recipe browser" in the README. In short:
+#   1. configuration.yaml:
+#        homeassistant:
+#          packages: !include_dir_named packages
+#   2. copy this file to  <config>/packages/toque.yaml
+#   3. set your to-do list below (search for CHANGE ME), then restart Home Assistant.
+#
+# What it adds:
+#   input_text.toque_recherche       the words to search for
+#   input_select.toque_recette       the recipes found (pick one)
+#   sensor.toque_recettes_trouvees   how many recipes were found, with the list as an attribute
+#   sensor.toque_recette_choisie     the recipe picked, with its ingredients and steps
+#   script.toque_chercher            search the robot's library
+#   script.toque_ajouter_au_panier   add the picked recipe's ingredients to the to-do list
+#
+# The robot must be switched on: the recipes live on the robot, not in Home Assistant.
+
+input_text:
+  toque_recherche:
+    name: Recette à chercher
+    icon: mdi:magnify
+    max: 80
+    initial: ""
+
+input_select:
+  toque_recette:
+    name: Recette
+    icon: mdi:book-open-variant
+    options:
+      - Aucune recette
+
+script:
+  toque_chercher:
+    alias: "Toque : chercher des recettes"
+    icon: mdi:magnify
+    mode: restart
+    sequence:
+      - action: toque.search_recipes
+        data:
+          query: "{{ states('input_text.toque_recherche') }}"
+          limit: 20
+        response_variable: found
+      - variables:
+          # One line per recipe, ending with its id in brackets: the id is read back from there.
+          options: >-
+            {% set ns = namespace(o=[]) %}
+            {% for r in found['items'] %}
+              {% set ns.o = ns.o + [r.title ~ ' [' ~ r.id ~ ']'] %}
+            {% endfor %}
+            {{ ns.o if ns.o else ['Aucune recette'] }}
+      - event: toque_recipes_found
+        event_data:
+          total: "{{ found.total }}"
+          recettes: "{{ found['items'] }}"
+      - action: input_select.set_options
+        target:
+          entity_id: input_select.toque_recette
+        data:
+          options: "{{ options }}"
+      # set_options keeps the first line selected without announcing a change: read it now.
+      - action: script.turn_on
+        target:
+          entity_id: script.toque_lire_recette
+
+  toque_lire_recette:
+    alias: "Toque : lire la recette choisie"
+    icon: mdi:book-open-page-variant
+    mode: restart
+    sequence:
+      - variables:
+          choice: "{{ states('input_select.toque_recette') }}"
+          recipe_id: >-
+            {% set m = choice | regex_findall('\[([^\]]+)\]$') %}
+            {{ m[0] if m else '' }}
+      - if:
+          - condition: template
+            value_template: "{{ recipe_id == '' }}"
+        then:
+          - event: toque_recipe_read
+            event_data:
+              title: ""
+              recipe_id: ""
+              ingredients: []
+              steps: []
+          - stop: Aucune recette choisie
+      - action: toque.get_recipe
+        data:
+          recipe_id: "{{ recipe_id }}"
+        response_variable: got
+      - variables:
+          ingredients: >-
+            {% set ns = namespace(o=[]) %}
+            {% for g in got.recipe.ingredients %}
+              {% for i in g['items'] %}
+                {% set ns.o = ns.o + [i.text] %}
+              {% endfor %}
+            {% endfor %}
+            {{ ns.o }}
+          steps: >-
+            {% set ns = namespace(o=[]) %}
+            {% for s in got.recipe.steps %}
+              {% set ns.o = ns.o + [s.text ~ ((' (' ~ s.setting ~ ')') if s.setting else '')] %}
+            {% endfor %}
+            {{ ns.o }}
+      - event: toque_recipe_read
+        event_data:
+          recipe_id: "{{ recipe_id }}"
+          title: "{{ got.recipe.title }}"
+          servings: "{{ got.recipe.servings }}"
+          minutes: "{{ got.recipe.minutes }}"
+          rating: "{{ got.recipe.rating }}"
+          rating_count: "{{ got.recipe.rating_count }}"
+          author: "{{ got.recipe.author }}"
+          ingredients: "{{ ingredients }}"
+          steps: "{{ steps }}"
+
+  toque_ajouter_au_panier:
+    alias: "Toque : ajouter les ingrédients au panier"
+    icon: mdi:cart-plus
+    mode: single
+    variables:
+      # CHANGE ME: your to-do list. Home Assistant's own shopping list is
+      # todo.liste_de_courses in French and todo.shopping_list in English.
+      todo_list: todo.liste_de_courses
+    sequence:
+      - variables:
+          choice: "{{ states('input_select.toque_recette') }}"
+          recipe_id: >-
+            {% set m = choice | regex_findall('\[([^\]]+)\]$') %}
+            {{ m[0] if m else '' }}
+      - if:
+          - condition: template
+            value_template: "{{ recipe_id == '' }}"
+        then:
+          - action: persistent_notification.create
+            data:
+              title: Toque
+              message: Cherchez et choisissez d'abord une recette.
+          - stop: Aucune recette choisie
+      - action: toque.add_to_shopping_list
+        data:
+          recipe_id: "{{ recipe_id }}"
+          todo_entity: "{{ todo_list }}"
+        response_variable: result
+      - action: persistent_notification.create
+        data:
+          title: Toque
+          message: >-
+            {{ result.added }} ingrédients ajoutés au panier pour
+            « {{ result.recipes[0].title if result.recipes else choice }} ».
+
+automation:
+  - id: toque_lire_la_recette_choisie
+    alias: "Toque : lire la recette quand on en choisit une"
+    mode: restart
+    triggers:
+      - trigger: state
+        entity_id: input_select.toque_recette
+    actions:
+      - action: script.turn_on
+        target:
+          entity_id: script.toque_lire_recette
+
+template:
+  - triggers:
+      - trigger: event
+        event_type: toque_recipes_found
+    sensor:
+      - name: Toque recettes trouvées
+        unique_id: toque_recettes_trouvees
+        icon: mdi:book-search
+        state: "{{ trigger.event.data.total }}"
+        attributes:
+          recettes: "{{ trigger.event.data.recettes }}"
+  - triggers:
+      - trigger: event
+        event_type: toque_recipe_read
+    sensor:
+      - name: Toque recette choisie
+        unique_id: toque_recette_choisie
+        icon: mdi:book-open-variant
+        state: "{{ (trigger.event.data.title or 'Aucune')[:255] }}"
+        attributes:
+          recipe_id: "{{ trigger.event.data.recipe_id }}"
+          servings: "{{ trigger.event.data.servings | default('') }}"
+          minutes: "{{ trigger.event.data.minutes | default('') }}"
+          rating: "{{ trigger.event.data.rating | default('') }}"
+          rating_count: "{{ trigger.event.data.rating_count | default('') }}"
+          author: "{{ trigger.event.data.author | default('') }}"
+          ingredients: "{{ trigger.event.data.ingredients }}"
+          steps: "{{ trigger.event.data.steps }}"
+
+# Optional: the two sensors above carry long lists. To keep them out of the history database,
+# add them to the `recorder:` section of your configuration.yaml (it cannot be set from a package
+# when you already have one):
+#
+#   recorder:
+#     exclude:
+#       entities:
+#         - sensor.toque_recettes_trouvees
+#         - sensor.toque_recette_choisie
